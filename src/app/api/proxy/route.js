@@ -1,40 +1,19 @@
-// src/app/api/proxy/route.js
-import { NextResponse } from 'next/server';
+import axios from 'axios';
 
-export async function POST(req) {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    
+export default async function handler(req, res) {
+  if (req.method === 'POST') {
     try {
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: await req.text(),
-            timeout: 130000 // 60 seconds timeout
-        });
-
-        if (!response.ok) {
-            // Log the error for debugging
-            console.error(`External API error! status: ${response.status}`);
-            
-            // Return a more informative error response
-            return NextResponse.json({ 
-                error: `External API error`,
-                status: response.status,
-                statusText: response.statusText
-            }, { status: response.status });
-        }
-
-        const data = await response.json();
-        return NextResponse.json(data);
+      const response = await axios.post(process.env.NEXT_PUBLIC_API_URL, req.body, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      res.status(200).json(response.data);
     } catch (error) {
-        console.error('Error in proxy:', error);
-        
-        // Return a more detailed error response
-        return NextResponse.json({ 
-            error: 'Internal Server Error',
-            message: error.message
-        }, { status: 500 });
+      res.status(500).json({ error: 'Error calling LemmeBuild API', details: error.message });
     }
+  } else {
+    res.setHeader('Allow', ['POST']);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
+  }
 }
