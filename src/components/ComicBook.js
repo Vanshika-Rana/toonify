@@ -1,6 +1,5 @@
 "use client";
-import React, { useState } from "react";
-import axios from "axios";
+import React, { useState, useEffect } from "react";
 import { rpcClient } from "@/services/rpc-client";
 
 const ComicBook = () => {
@@ -8,29 +7,42 @@ const ComicBook = () => {
 	const [data, setData] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
+	const [currentFact, setCurrentFact] = useState("");
+
+	const funFacts = [
+		"The first comic book was published in 1933!",
+		"Superman can't see through lead with his X-ray vision.",
+		"The Hulk was originally supposed to be gray, not green!",
+		"Batman and Daredevil were both inspired by the same source: Zorro.",
+		"Spider-Man's web-shooters were mechanical in the comics, not organic like in some movies.",
+		"Wonder Woman's lasso not only compels truth but is also unbreakable.",
+		"Deadpool knows he's in a comic book - he often breaks the fourth wall!",
+		"The Flash can run so fast, he can travel through time.",
+		"In the comics, Thanos' snap affected the entire universe, not just half.",
+		"The X-Men were originally going to be called 'The Mutants'.",
+	];
+
+	useEffect(() => {
+		if (loading) {
+			const interval = setInterval(() => {
+				setCurrentFact(
+					funFacts[Math.floor(Math.random() * funFacts.length)]
+				);
+			}, 3000);
+			return () => clearInterval(interval);
+		}
+	}, [loading]);
 
 	const generateComic = async () => {
 		setLoading(true);
 		setError(null);
 		setData(null);
+		setCurrentFact(funFacts[Math.floor(Math.random() * funFacts.length)]);
 
 		try {
-			// Generate a unique ID for this request
 			const uid = Date.now();
-
-			// First API call to create the comic
-			// const createResponse = await axios.post('https://charming-wilson-intelligent.lemme.cloud/api/toonify', {
-			//     method: "create",
-			//     params: {
-			//         uid: uid,
-			//         prompt: prompt
-			//     }
-			// });
-
 			let createResponse = await rpcClient("create", { uid, prompt });
-			console.log(createResponse);
 			if (createResponse.status === 200) {
-				// Second API call to get the data
 				let getDataResponse = await rpcClient("getData", { uid });
 				if (getDataResponse.status === 200) {
 					setData(getDataResponse.data.response[0]);
@@ -50,94 +62,111 @@ const ComicBook = () => {
 	};
 
 	return (
-		<div className='flex flex-col justify-center items-center min-h-screen py-8 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-900 to-slate-900'>
-			<h1 className='toonify-heading'>TOONIFY!</h1>
-			<p className='text-center text-indigo-200 mb-8 text-xl md:text-2xl'>
-				Unleash your creativity and watch as AI brings your wildest
-				comic ideas to life!
-			</p>
-			<div className='mb-8 w-full max-w-md'>
-				<input
-					type='text'
-					value={prompt}
-					onChange={(e) => setPrompt(e.target.value)}
-					placeholder='Enter your epic comic idea here...'
-					disabled={loading}
-					className='w-full px-4 py-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-800 text-white shadow-md'
-				/>
-				<button
-					onClick={generateComic}
-					disabled={loading}
-					className='w-full px-4 py-3 text-slate-900 font-bold bg-yellow-500 rounded-lg shadow-lg hover:bg-yellow-400 transition-all duration-200 ease-in-out hover:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50'>
-					{loading ? "Generating..." : "Generate Epic Comic"}
-				</button>
+		<div className='min-h-screen bg-black text-white font-sans p-4 flex flex-col items-center justify-center'>
+			<div className='w-full max-w-3xl text-center mb-12'>
+				<h1 className='text-6xl md:text-7xl lg:text-8xl font-black mb-4 gradient-text'>
+					TOONIFY!
+				</h1>
+				<p className='text-xl text-gray-400 mb-8'>
+					Unleash your creativity and watch as AI brings your wildest
+					comic ideas to life!
+				</p>
+				<div className='flex flex-col sm:flex-row gap-4 mb-8'>
+					<input
+						type='text'
+						value={prompt}
+						onChange={(e) => setPrompt(e.target.value)}
+						placeholder='Enter your comic idea here...'
+						className='flex-grow px-4 py-2 bg-gray-900 text-white border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500'
+					/>
+					<button
+						onClick={generateComic}
+						disabled={loading}
+						className='px-6 py-2 bg-purple-600 text-white font-semibold rounded-md hover:bg-purple-700 transition-colors duration-300'>
+						{loading ? "Generating..." : "Generate"}
+					</button>
+				</div>
+
+				{loading && (
+					<div className='mb-8'>
+						<div className='loader mb-4'></div>
+						<p className='text-purple-400 text-xl mb-4'>
+							Creating your masterpiece...
+						</p>
+						<div className='bg-gray-900 p-4 rounded-md'>
+							<p className='text-gray-300 text-lg italic'>
+								&quot;{currentFact}&quot;
+							</p>
+						</div>
+					</div>
+				)}
 			</div>
-			{loading && <p>Loading...</p>}
+
 			{error && (
 				<div
-					className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative'
+					className='w-full max-w-3xl bg-red-900 text-white p-4 rounded-md mb-4'
 					role='alert'>
-					<strong className='font-bold'>Error: </strong>
-					<span className='block sm:inline'>{error}</span>
+					<p className='font-bold'>Error: {error}</p>
 				</div>
 			)}
+
 			{data && (
-				<div className='grid grid-cols-1 md:grid-cols-2 gap-8 px-8 md:px-12 lg:px-36'>
+				<div className='w-full max-w-3xl grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8'>
 					{[
-						"s1",
-						"s2",
-						"s3",
-						"s4",
-						"img1",
-						"img2",
-						"img3",
-						"img4",
-					].map((key) => (
+						{ key: "s1", img: "img1" },
+						{ key: "s2", img: "img2" },
+						{ key: "s3", img: "img3" },
+						{ key: "s4", img: "img4" },
+					].map(({ key, img }) => (
 						<div
 							key={key}
-							className='bg-white rounded-lg shadow-lg overflow-hidden border-4 border-yellow-400 transition-transform transform hover:scale-105'>
-							{key.startsWith("img") ? (
-								<img
-									src={data[key]}
-									alt={`Comic panel ${key}`}
-									className='w-full h-auto'
-								/>
-							) : (
-								<div className='p-4 bg-gray-100'>
-									<p className='text-sm font-medium text-gray-800 font-comic'>
-										{data[key]}
-									</p>
-								</div>
-							)}
+							className='bg-gray-900 rounded-md overflow-hidden'>
+							<img
+								src={data[img]}
+								alt={`Comic panel ${img}`}
+								className='w-full h-auto object-cover'
+							/>
+							<p className='p-3 text-sm text-gray-300'>
+								{data[key]}
+							</p>
 						</div>
 					))}
 				</div>
 			)}
+
 			<style jsx>{`
-				.toonify-heading {
-					font-size: 7rem;
-					font-weight: bold;
-					color: #ffeb3b;
-					text-shadow: 3px 3px 0 rgba(255, 0, 0, 0.8),
-						5px 5px 0 rgba(255, 0, 0, 0.6);
-					font-family: "Impact", sans-serif;
-					letter-spacing: 5px;
-				}
-				.loader {
-					width: 60px;
-					height: 60px;
-					border: 6px solid #00bfff;
-					border-top: 6px solid transparent;
-					border-radius: 50%;
-					animation: spin 1s linear infinite;
+				.gradient-text {
+					background: linear-gradient(to right, #a855f7, #3b82f6);
+					-webkit-background-clip: text;
+					-webkit-text-fill-color: transparent;
 				}
 
-				@keyframes spin {
-					0% {
-						transform: rotate(0deg);
+				.loader {
+					width: 80px;
+					height: 80px;
+					background-color: #a855f7;
+					clip-path: polygon(
+						50% 0%,
+						61% 35%,
+						98% 35%,
+						68% 57%,
+						79% 91%,
+						50% 70%,
+						21% 91%,
+						32% 57%,
+						2% 35%,
+						39% 35%
+					);
+					display: inline-block;
+					animation: pulse 1s ease-in-out infinite alternate;
+				}
+
+				@keyframes pulse {
+					from {
+						transform: scale(1);
 					}
-					100% {
-						transform: rotate(360deg);
+					to {
+						transform: scale(1.2);
 					}
 				}
 			`}</style>
