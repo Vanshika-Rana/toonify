@@ -12,7 +12,7 @@ export async function POST(req) {
                 'Content-Type': 'application/json',
             },
             body: await req.text(),
-            timeout: 150000 // 2 minutes timeout
+            timeout: 120000 // 2 minutes timeout
         });
 
         console.log(`Received response from external API. Status: ${response.status}`);
@@ -26,7 +26,18 @@ export async function POST(req) {
             }, { status: response.status });
         }
 
-        const data = await response.json();
+        const text = await response.text();
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (parseError) {
+            console.error('Error parsing JSON:', parseError);
+            return NextResponse.json({ 
+                error: 'Invalid JSON response from external API',
+                rawResponse: text.slice(0, 200) // Include part of the raw response for debugging
+            }, { status: 500 });
+        }
+
         console.log('Successfully processed response from external API');
         return NextResponse.json(data);
     } catch (error) {

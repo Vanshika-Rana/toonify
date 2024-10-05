@@ -77,10 +77,8 @@ const ComicBook = () => {
 
 			const result = await response.json();
 
-			if (!response.ok) {
-				throw new Error(
-					`${result.error}: ${result.message || result.statusText}`
-				);
+			if (!response.ok || result.error) {
+				throw new Error(result.error || "An unknown error occurred");
 			}
 
 			setData(result);
@@ -94,7 +92,6 @@ const ComicBook = () => {
 			setLoading(false);
 		}
 	};
-
 	return (
 		<>
 			<Head>
