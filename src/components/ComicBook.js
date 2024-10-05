@@ -37,23 +37,29 @@ const ComicBook = () => {
 			try {
 				const response = await fetch(url, options);
 				if (response.ok) return response;
-				
+
 				// If it's a 524 error, we retry
 				if (response.status === 524) {
 					retries++;
-					await new Promise(resolve => setTimeout(resolve, Math.pow(2, retries) * 1000));
+					await new Promise((resolve) =>
+						setTimeout(resolve, Math.pow(2, retries) * 1000)
+					);
 					continue;
 				}
-				
+
 				// For other errors, we throw
 				throw new Error(`HTTP error! status: ${response.status}`);
 			} catch (error) {
 				if (retries === maxRetries - 1) throw error;
 				retries++;
-				await new Promise(resolve => setTimeout(resolve, Math.pow(2, retries) * 1000));
+				await new Promise((resolve) =>
+					setTimeout(resolve, Math.pow(2, retries) * 1000)
+				);
 			}
 		}
 	};
+
+	// In your ComicBook component
 
 	const fetchDataWithRetry = async () => {
 		setLoading(true);
@@ -61,7 +67,7 @@ const ComicBook = () => {
 		setData(null);
 
 		try {
-			const response = await fetchWithRetry("/api/proxy", {
+			const response = await fetch("/api/proxy", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -69,17 +75,21 @@ const ComicBook = () => {
 				body: JSON.stringify({ prompt }),
 			});
 
+			const result = await response.json();
+
 			if (!response.ok) {
-				const errorData = await response.json();
-				throw new Error(`${errorData.error}: ${errorData.message || errorData.statusText}`);
+				throw new Error(
+					`${result.error}: ${result.message || result.statusText}`
+				);
 			}
 
-			const result = await response.json();
 			setData(result);
-			setPrompt(""); // Clear the input field after generating the comic
+			setPrompt("");
 		} catch (error) {
 			console.error("Fetch error:", error);
-			setError(`An error occurred: ${error.message}. Please try again.`);
+			setError(
+				`An error occurred: ${error.message}. Our team has been notified and is working on resolving this issue. Please try again later.`
+			);
 		} finally {
 			setLoading(false);
 		}
