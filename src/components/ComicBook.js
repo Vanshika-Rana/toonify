@@ -31,51 +31,59 @@ const ComicBook = () => {
 		return () => clearInterval(messageInterval);
 	}, [loading, messages.length]);
 
-	const fetchDataWithRetry = async (retries = 3) => {
+	// In your ComicBook component
+
+	// In your ComicBook component
+
+	const fetchDataWithRetry = async () => {
 		setLoading(true);
 		setError(null);
 		setData(null);
 
-		const controller = new AbortController();
-		const timeoutId = setTimeout(() => controller.abort(), 330000); // 5.5 minutes timeout
-
 		try {
-			const response = await fetch("/api/proxy", {
+			// Start the job
+			const startResponse = await fetch("/api/proxy", {
 				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
+				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ prompt }),
-				signal: controller.signal,
 			});
 
-			if (!response.ok) {
-				// Log the status for debugging
-				console.error(`HTTP error! status: ${response.status}`);
-				throw new Error(`HTTP error! status: ${response.status}`);
+			if (!startResponse.ok) {
+				throw new Error(`HTTP error! status: ${startResponse.status}`);
 			}
 
-			const result = await response.json();
-			setData(result);
-			setPrompt(""); // Clear the input field after generating the comic
+			const { jobId } = await startResponse.json();
+
+			// Poll for job completion with exponential backoff
+			let delay = 1000; // Start with 1 second delay
+			while (true) {
+				await new Promise((resolve) => setTimeout(resolve, delay));
+
+				const statusResponse = await fetch(`/api/proxy?jobId=${jobId}`);
+				if (!statusResponse.ok) {
+					throw new Error(
+						`HTTP error! status: ${statusResponse.status}`
+					);
+				}
+
+				const jobStatus = await statusResponse.json();
+
+				if (jobStatus.status === "completed") {
+					setData(jobStatus.data);
+					break;
+				} else if (jobStatus.status === "error") {
+					throw new Error(jobStatus.error);
+				}
+				// If status is 'pending', continue polling
+				delay = Math.min(delay * 2, 30000); // Double the delay, max 30 seconds
+			}
+
+			setPrompt("");
 		} catch (error) {
 			console.error("Fetch error:", error);
-
-			if (error.name === "AbortError") {
-				setError("Request timed out. Please try again.");
-			 } 
-             // else if (retries > 0) {
-			// 	console.log(`Retrying... ${retries} attempts left`);
-			// 	return fetchDataWithRetry(retries - 1);
-			// } 
-            else {
-				setError(
-					`An error occurred: ${error.message}. Please try again.`
-				);
-			}
+			setError(`An error occurred: ${error.message}. Please try again.`);
 		} finally {
 			setLoading(false);
-			clearTimeout(timeoutId);
 		}
 	};
 
