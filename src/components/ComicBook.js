@@ -31,9 +31,29 @@ const ComicBook = () => {
 		return () => clearInterval(messageInterval);
 	}, [loading, messages.length]);
 
-	// In your ComicBook component
-
-	// In your ComicBook component
+	const fetchWithRetry = async (url, options, maxRetries = 3) => {
+		let retries = 0;
+		while (retries < maxRetries) {
+			try {
+				const response = await fetch(url, options);
+				if (response.ok) return response;
+				
+				// If it's a 524 error, we retry
+				if (response.status === 524) {
+					retries++;
+					await new Promise(resolve => setTimeout(resolve, Math.pow(2, retries) * 1000));
+					continue;
+				}
+				
+				// For other errors, we throw
+				throw new Error(`HTTP error! status: ${response.status}`);
+			} catch (error) {
+				if (retries === maxRetries - 1) throw error;
+				retries++;
+				await new Promise(resolve => setTimeout(resolve, Math.pow(2, retries) * 1000));
+			}
+		}
+	};
 
 	const fetchDataWithRetry = async () => {
 		setLoading(true);
@@ -41,44 +61,22 @@ const ComicBook = () => {
 		setData(null);
 
 		try {
-			// Start the job
-			const startResponse = await fetch("/api/proxy", {
+			const response = await fetchWithRetry("/api/proxy", {
 				method: "POST",
-				headers: { "Content-Type": "application/json" },
+				headers: {
+					"Content-Type": "application/json",
+				},
 				body: JSON.stringify({ prompt }),
 			});
 
-			if (!startResponse.ok) {
-				throw new Error(`HTTP error! status: ${startResponse.status}`);
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(`${errorData.error}: ${errorData.message || errorData.statusText}`);
 			}
 
-			const { jobId } = await startResponse.json();
-
-			// Poll for job completion with exponential backoff
-			let delay = 1000; // Start with 1 second delay
-			while (true) {
-				await new Promise((resolve) => setTimeout(resolve, delay));
-
-				const statusResponse = await fetch(`/api/proxy?jobId=${jobId}`);
-				if (!statusResponse.ok) {
-					throw new Error(
-						`HTTP error! status: ${statusResponse.status}`
-					);
-				}
-
-				const jobStatus = await statusResponse.json();
-
-				if (jobStatus.status === "completed") {
-					setData(jobStatus.data);
-					break;
-				} else if (jobStatus.status === "error") {
-					throw new Error(jobStatus.error);
-				}
-				// If status is 'pending', continue polling
-				delay = Math.min(delay * 2, 30000); // Double the delay, max 30 seconds
-			}
-
-			setPrompt("");
+			const result = await response.json();
+			setData(result);
+			setPrompt(""); // Clear the input field after generating the comic
 		} catch (error) {
 			console.error("Fetch error:", error);
 			setError(`An error occurred: ${error.message}. Please try again.`);
@@ -171,13 +169,13 @@ const ComicBook = () => {
 
 			<style jsx>{`
 				.toonify-heading {
-					font-size: 7rem; /* Increased size */
+					font-size: 7rem;
 					font-weight: bold;
-					color: #ffeb3b; /* Bright yellow */
+					color: #ffeb3b;
 					text-shadow: 3px 3px 0 rgba(255, 0, 0, 0.8),
-						5px 5px 0 rgba(255, 0, 0, 0.6); /* Red shadows */
-					font-family: "Impact", sans-serif; /* Updated font to Impact */
-					letter-spacing: 5px; /* Added letter spacing */
+						5px 5px 0 rgba(255, 0, 0, 0.6);
+					font-family: "Impact", sans-serif;
+					letter-spacing: 5px;
 				}
 				.loader {
 					width: 60px;
