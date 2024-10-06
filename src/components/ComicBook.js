@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { rpcClient } from "@/services/rpc-client";
+import { AlertCircle } from "lucide-react";
 
 const ComicBook = () => {
 	const [prompt, setPrompt] = useState("");
@@ -8,6 +9,7 @@ const ComicBook = () => {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
 	const [currentFact, setCurrentFact] = useState("");
+	const [inputError, setInputError] = useState(false);
 
 	const funFacts = [
 		"The first comic book was published in 1933!",
@@ -34,6 +36,12 @@ const ComicBook = () => {
 	}, [loading]);
 
 	const generateComic = async () => {
+		if (!prompt.trim()) {
+			setInputError(true);
+			return;
+		}
+
+		setInputError(false);
 		setLoading(true);
 		setError(null);
 		setData(null);
@@ -75,17 +83,32 @@ const ComicBook = () => {
 					<input
 						type='text'
 						value={prompt}
-						onChange={(e) => setPrompt(e.target.value)}
+						onChange={(e) => {
+							setPrompt(e.target.value);
+							setInputError(false);
+						}}
 						placeholder='Enter your comic idea here...'
-						className='flex-grow px-4 py-2 bg-gray-900 text-white border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500'
+						className={`flex-grow px-4 py-2 bg-gray-900 text-white border ${
+							inputError ? 'border-red-500' : 'border-gray-700'
+						} rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500`}
 					/>
 					<button
 						onClick={generateComic}
 						disabled={loading}
-						className='px-6 py-2 bg-purple-600 text-white font-semibold rounded-md hover:bg-purple-700 transition-colors duration-300'>
+						className='px-6 py-2 bg-purple-600 text-white font-semibold rounded-md hover:bg-purple-700 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed'>
 						{loading ? "Generating..." : "Generate"}
 					</button>
 				</div>
+
+				{inputError && (
+					<div className="flex items-center p-4 mb-4 text-sm text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800" role="alert">
+						<AlertCircle className="flex-shrink-0 inline w-4 h-4 mr-3" />
+						<span className="sr-only">Error</span>
+						<div>
+							Please enter a comic idea before generating.
+						</div>
+					</div>
+				)}
 
 				{loading && (
 					<div className='mb-8'>
