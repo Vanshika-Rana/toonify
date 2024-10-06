@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const RPC_URL = "https://charming-wilson-intelligent.lemme.cloud/api/toonify";
+const RPC_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const rpcClient = async (method, params = {}) => {
   try {
