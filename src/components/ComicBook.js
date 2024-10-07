@@ -10,6 +10,7 @@ const ComicBook = () => {
 	const [error, setError] = useState(null);
 	const [currentFact, setCurrentFact] = useState("");
 	const [inputError, setInputError] = useState(false);
+	const [generatedPrompt, setGeneratedPrompt] = useState(""); // New state for storing the generated prompt
 
 	const funFacts = [
 		"The first comic book was published in 1933!",
@@ -46,6 +47,7 @@ const ComicBook = () => {
 		setError(null);
 		setData(null);
 		setCurrentFact(funFacts[Math.floor(Math.random() * funFacts.length)]);
+		setGeneratedPrompt(prompt); // Store the prompt that was used to generate the comic
 
 		try {
 			const uid = Date.now();
@@ -134,27 +136,33 @@ const ComicBook = () => {
 			)}
 
 			{data && (
-				<div className='w-full max-w-3xl grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8'>
-					{[
-						{ key: "s1", img: "img1" },
-						{ key: "s2", img: "img2" },
-						{ key: "s3", img: "img3" },
-						{ key: "s4", img: "img4" },
-					].map(({ key, img }) => (
-						<div
-							key={key}
-							className='bg-gray-900 rounded-md overflow-hidden'>
-							<img
-								src={data[img]}
-								alt={`Comic panel ${img}`}
-								className='w-full h-auto object-cover'
-							/>
-							<p className='p-3 text-sm text-gray-300'>
-								{data[key]}
-							</p>
-						</div>
-					))}
-				</div>
+				<>
+					<div className='w-full max-w-3xl mb-8'>
+						
+						<p className='text-xl text-purple-400 uppercase text-center font-bold'>{generatedPrompt}</p>
+					</div>
+					<div className='w-full max-w-3xl grid grid-cols-1 sm:grid-cols-2 gap-4'>
+						{[
+							{ key: "s1", img: "img1" },
+							{ key: "s2", img: "img2" },
+							{ key: "s3", img: "img3" },
+							{ key: "s4", img: "img4" },
+						].map(({ key, img }) => (
+							<div
+								key={key}
+								className='bg-gray-900 rounded-md overflow-hidden'>
+								<img
+									src={data[img]}
+									alt={`Comic panel ${img}`}
+									className='w-full h-auto object-cover'
+								/>
+								<p className='p-3 text-sm text-gray-300'>
+									{data[key]}
+								</p>
+							</div>
+						))}
+					</div>
+				</>
 			)}
 
 			<style jsx>{`
