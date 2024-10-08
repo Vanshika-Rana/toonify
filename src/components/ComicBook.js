@@ -101,7 +101,7 @@ const ComicBook = () => {
 						</button>
 					</div>
 				</div>
-				<p className='font-bold'>
+				<p className='font-bold mb-8'>
 					Built with ❤️ using{" "}
 					<a href='https://lemmebuild.com' className='text-blue-500'>
 						LemmeBuild
