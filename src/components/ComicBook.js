@@ -10,7 +10,7 @@ const ComicBook = () => {
 	const [error, setError] = useState(null);
 	const [currentFact, setCurrentFact] = useState("");
 	const [inputError, setInputError] = useState(false);
-	const [generatedPrompt, setGeneratedPrompt] = useState(""); // New state for storing the generated prompt
+	const [generatedPrompt, setGeneratedPrompt] = useState("");
 
 	const funFacts = [
 		"The first comic book was published in 1933!",
@@ -47,7 +47,7 @@ const ComicBook = () => {
 		setError(null);
 		setData(null);
 		setCurrentFact(funFacts[Math.floor(Math.random() * funFacts.length)]);
-		setGeneratedPrompt(prompt); // Store the prompt that was used to generate the comic
+		setGeneratedPrompt(prompt);
 
 		try {
 			const uid = Date.now();
@@ -77,7 +77,7 @@ const ComicBook = () => {
 				<h1 className='text-6xl md:text-7xl lg:text-8xl font-black mb-4 gradient-text'>
 					TOONIFY!
 				</h1>
-				<p className='text-xl text-gray-400 mb-8'>
+				<p className='text-xl text-gray-400 mb-2'>
 					Unleash your creativity and watch as AI brings your wildest
 					comic ideas to life!
 				</p>
@@ -90,28 +90,42 @@ const ComicBook = () => {
 							setInputError(false);
 						}}
 						placeholder='Enter your comic idea here...'
-						className={`flex-grow px-4 py-2 bg-gray-900 text-white border ${
-							inputError ? 'border-red-500' : 'border-gray-700'
-						} rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500`}
+						className='flex-grow px-4 py-2 bg-gray-900 text-white border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500'
 					/>
-					<button
-						onClick={generateComic}
-						disabled={loading}
-						className='px-6 py-2 bg-purple-600 text-white font-semibold rounded-md hover:bg-purple-700 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed'>
-						{loading ? "Generating..." : "Generate"}
-					</button>
+					<div className='flex gap-2'>
+						<button
+							onClick={generateComic}
+							disabled={loading}
+							className='px-6 py-2 bg-purple-600 text-white font-semibold rounded-md hover:bg-purple-700 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed'>
+							{loading ? "Generating..." : "Generate"}
+						</button>
+					</div>
 				</div>
-
+				<p className='font-bold'>
+					Built with ❤️ using{" "}
+					<a href='https://lemmebuild.com' className='text-blue-500'>
+						LemmeBuild
+					</a>
+					<span>
+                    &nbsp; |  &nbsp;
+						<a
+							href='https://www.buymeacoffee.com/aahiknsv'
+							className='font-bold text-yellow-500'
+							target='_blank'
+							rel='noopener noreferrer'>
+							 Buy Me a Coffee !
+						</a>
+					</span>
+				</p>
 				{inputError && (
-					<div className="flex items-center p-4 mb-4 text-sm text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800" role="alert">
-						<AlertCircle className="flex-shrink-0 inline w-4 h-4 mr-3" />
-						<span className="sr-only">Error</span>
-						<div>
-							Please enter a comic idea before generating.
-						</div>
+					<div
+						className='flex items-center p-4 mb-4 text-sm text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800'
+						role='alert'>
+						<AlertCircle className='flex-shrink-0 inline w-4 h-4 mr-3' />
+						<span className='sr-only'>Error</span>
+						<div>Please enter a comic idea before generating.</div>
 					</div>
 				)}
-
 				{loading && (
 					<div className='mb-8'>
 						<div className='loader mb-4'></div>
@@ -138,8 +152,9 @@ const ComicBook = () => {
 			{data && (
 				<>
 					<div className='w-full max-w-3xl mb-8'>
-						
-						<p className='text-xl text-purple-400 uppercase text-center font-bold'>{generatedPrompt}</p>
+						<p className='text-xl text-purple-400 uppercase text-center font-bold'>
+							{generatedPrompt}
+						</p>
 					</div>
 					<div className='w-full max-w-3xl grid grid-cols-1 sm:grid-cols-2 gap-4'>
 						{[
